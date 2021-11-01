@@ -6,6 +6,7 @@
 #include <linux/string.h> // strcmp
 #include <asm/page.h>
 #include <linux/workqueue.h>
+#include <linux/delay.h> 
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Alice");
@@ -28,16 +29,26 @@ char current_scancode;
 bool find_user_task_struct(char* prog_name);
 static void my_wq_function(struct work_struct *work);
 irqreturn_t irq_handler(int irq, void *dev, struct pt_regs *regs);
+void update_info_about_mem(struct mm_struct *info_about_mem);
 
 // Статическая инициализация структуры.
 // Создает (работу), переменную my_work, с типом struct work_struct *
 DECLARE_WORK(my_work, my_wq_function);
 
+unsigned long  total_vm_old;
+unsigned long  locked_vm_old;
+int  map_count_old;
+unsigned long  all_brk_old;
+
 void info_about_mm(void)
 {
 	struct mm_struct *info_about_mem; 
-	atomic_t mm_users; 
-	int counter;
+	bool is_new_data = false;
+
+	unsigned long  total_vm_current;
+	unsigned long  locked_vm_current;
+	int map_count_current;
+	unsigned long  all_brk_current;
 
 	if (find_user_task_struct(ANALYSIS_PROGRAM_NAME) == false)
 	{
@@ -45,43 +56,51 @@ void info_about_mm(void)
 		return;
 	}
 
-	// if (task == NULL || task->mm == NULL)
-	// {
-	// 	printk(KERN_INFO "+Module: task or task->mm is NULL");
-	// 	if (find_user_task_struct(ANALYSIS_PROGRAM_NAME) == false)
-	// 	{
-	// 		printk(KERN_INFO "+Module: find_user_task_struct is false");
-	// 		return;
-	// 	}
-	// }
-
 	info_about_mem = task->mm;
-	
-	// В поле mm_users хранится количество процессов, в которых используется данное адресное пространство.
-	mm_users = info_about_mem->mm_users; /* Счетчик использования адресного пространства */
-	counter = mm_users.counter;
 
-	printk(KERN_INFO "+Module: mm_users: %d", counter);
+	total_vm_current = info_about_mem->total_vm;
+	locked_vm_current = info_about_mem->locked_vm;
+	map_count_current = info_about_mem->map_count;
+	all_brk_current = info_about_mem->brk - info_about_mem->start_brk;
 	
-	printk(KERN_INFO "+Module: start_code = %lu end_code = %lu", info_about_mem->start_code, info_about_mem->end_code);
-	printk(KERN_INFO "+Module: end_code - start_code = %lu ", info_about_mem->end_code - info_about_mem->start_code );
-	printk(KERN_INFO "+Module: task_size = %lu highest_vm_end = %lu", info_about_mem->task_size, info_about_mem->highest_vm_end);
-	printk(KERN_INFO "+number of VMAs = %d ", info_about_mem->map_count);
-	printk(KERN_INFO "+Total pages mapped (всего отображенных страниц) = %lu ", info_about_mem->total_vm);
+	// update_info_about_mem(info_about_mem);
 
-	printk(KERN_INFO "+start_brk = %lu ", info_about_mem->start_brk);
-	printk(KERN_INFO "+brk = %lu ", info_about_mem->brk);
-	printk(KERN_INFO "+brk - start_brk = %lu ", info_about_mem->brk - info_about_mem->start_brk);
+	if (total_vm_old > total_vm_current)
+	{
+		total_vm_old = total_vm_current;
+		return;
+	}
+
+	if (all_brk_old > all_brk_current)
+	{
+		all_brk_old = all_brk_current;
+		return;
+	}
+
+
+	if (total_vm_current != total_vm_old)
+	{
+		printk(KERN_INFO "+Module: Общее количество страниц памяти: было: %lu; стало:%lu; разница:%lu", total_vm_old, total_vm_current, total_vm_current - total_vm_old);
+		total_vm_old = total_vm_current;
+		is_new_data = true;
+	}
+
+	if (all_brk_current != all_brk_old)
+	{
+		printk(KERN_INFO "+Module: Используется сегментом кучи: было: %lu; стало:%lu; разница:%lu", all_brk_old, all_brk_current, all_brk_current - all_brk_old);
+		all_brk_old = all_brk_current;
+		is_new_data = true;
+	}
+
+	if (!is_new_data)
+	{
+		printk(KERN_INFO "+Module: Нет изменений");
+	}
 }
-
 
 static void my_wq_function(struct work_struct *work) // вызываемая функция
 {
 	int scan_normal;
-
-	// printk("Scan Code %d %s\n",
-	// 	current_scancode & KBD_SCANCODE_MASK,
-	// 	current_scancode & KBD_STATUS_MASK ? "Released" : "Pressed");
 
 	if (!(current_scancode & KBD_STATUS_MASK))
 	{
@@ -89,7 +108,6 @@ static void my_wq_function(struct work_struct *work) // вызываемая ф�
 
 		if (scan_normal == MONITORING_SCANCODE)
 		{
-			printk("This is esc!");
 			info_about_mm();
 		}
 	}
@@ -127,6 +145,46 @@ bool find_user_task_struct(char* prog_name)
 	return false;
 }
 
+void update_info_about_mem(struct mm_struct *info_about_mem)
+{
+	atomic_t mm_users; 
+	int counter;
+
+	mm_users = info_about_mem->mm_users; /* Счетчик использования адресного пространства */
+	counter = mm_users.counter;
+
+	total_vm_old = info_about_mem->total_vm;
+	locked_vm_old = info_about_mem->locked_vm;
+	map_count_old = info_about_mem->map_count;
+	all_brk_old = info_about_mem->brk - info_about_mem->start_brk;
+
+	printk(KERN_INFO "+Module: Количество процессов, в которых используется данное адресное пространство: %d", counter);
+
+	printk(KERN_INFO "+Module: Общее количество страниц памяти = %lu ", total_vm_old);
+	printk(KERN_INFO "+Module: Количество заблокированных страниц памяти = %lu ", locked_vm_old);
+	printk(KERN_INFO "+Module: Количество областей памяти: %d", map_count_old);
+
+	printk(KERN_INFO "+Module: Используется сегментом кучи: %lu", all_brk_old);
+	printk(KERN_INFO "+Module: Используется сегментом кода: %lu", info_about_mem->end_code - info_about_mem->start_code);
+	printk(KERN_INFO "+Module: Используется сегментом данных: %lu", info_about_mem->end_data - info_about_mem->start_data);
+}
+
+void first_proc(void)
+{
+	struct mm_struct *info_about_mem; 
+
+
+	if (find_user_task_struct(ANALYSIS_PROGRAM_NAME) == false)
+	{
+		printk(KERN_INFO "+Module: find_user_task_struct is false");
+		return;
+	}
+
+	info_about_mem = task->mm;
+
+	update_info_about_mem(info_about_mem);
+}
+
 static int __init md_init(void)
 {
 	// регистрация обработчика прерывания
@@ -155,7 +213,8 @@ static int __init md_init(void)
 		return -1;
 	}
 
-	find_user_task_struct(ANALYSIS_PROGRAM_NAME);
+	first_proc();
+	// find_user_task_struct(ANALYSIS_PROGRAM_NAME);
 
 	printk(KERN_INFO "Module: module loaded!\n");
 	return 0;
@@ -180,6 +239,19 @@ module_exit(md_exit);
 
 
 
+// if (locked_vm_current != locked_vm_old)
+// {
+// 	printk(KERN_INFO "+Module: Количество заблокированных страниц памяти: было: %lu; стало:%lu; разница:%lu", locked_vm_old, locked_vm_current, locked_vm_current - locked_vm_old);
+// 	locked_vm_old = locked_vm_current;
+// 	is_new_data = true;
+// }
+
+// if (map_count_current != map_count_old)
+// {
+// 	printk(KERN_INFO "+Module: Количество областей памяти: было: %d; стало:%d; разница:%d", map_count_old, map_count_current, map_count_current - map_count_old);
+// 	map_count_old = map_count_current;
+// 	is_new_data = true;
+// }
 
 // struct task_struct *task = &init_task;
 // struct mm_struct *info_about_mem; 

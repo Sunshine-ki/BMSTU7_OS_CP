@@ -6,14 +6,16 @@
 #include <errno.h>  
 #include <pthread.h>
 
-#define VALUE_SIZE 64
-#define OK 0
-#define GET_RAND_NUMBER(min, max) (rand() % (max - min + 1) + min)
+#define SUCCESS 0
+
 #define ERROR_CREATE_THREAD -11
 #define ERROR_JOIN_THREAD   -12
-#define SUCCESS        0
-#define PTHREAD_COUNT 2
 
+#define VALUE_SIZE 64
+#define PTHREAD_COUNT 3
+#define SLEEP_TIME 3
+
+#define GET_RAND_NUMBER(min, max) (rand() % (max - min + 1) + min)
 
 typedef struct Node {
     int *value; // VALUE_SIZE
@@ -115,7 +117,7 @@ void process(char* name)
 		long long int byte = (256 + 8) * i;
 		printf(" %s byte = %lld kilobyte = %lld ",name, byte, byte / 1024);
 		printf("pages = %lld \n", byte / 1024 / 4);
-	 	msleep(100);
+	 	msleep(SLEEP_TIME);
 	}
 }
  
@@ -146,6 +148,8 @@ int main()
 			exit(ERROR_CREATE_THREAD);
 		}
 	}
+
+	do_pthread("Main pthread"); 
 
  	for (int i = 0; i < PTHREAD_COUNT; i++)
 	{

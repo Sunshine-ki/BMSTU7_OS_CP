@@ -116,7 +116,6 @@ void process(char* name)
 		printf(" %s byte = %lld kilobyte = %lld ",name, byte, byte / 1024);
 		printf("pages = %lld \n", byte / 1024 / 4);
 	 	msleep(100);
-		// sleep(1);
 	}
 }
  
@@ -126,10 +125,6 @@ void* do_pthread(void *args)
 	return SUCCESS;
 }
 
-
-//TODO: 
-// Сделать 3 потока и посмотреть сколько будет выделяться памяти
-// На каждый поток свой список 
 // gcc pthread_example.c -pthread -o my_mem_prog
 int main() 
 {
@@ -152,8 +147,6 @@ int main()
 		}
 	}
 
-	// process("The main Thread");
- 
  	for (int i = 0; i < PTHREAD_COUNT; i++)
 	{
 		status = pthread_join(threads[i], (void**)&status_addr);

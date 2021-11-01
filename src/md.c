@@ -15,7 +15,6 @@ MODULE_DESCRIPTION("Coursework BMSTU");
 #define KBD_SCANCODE_MASK 0x7f
 #define KBD_STATUS_MASK 0x80
 
-// TODO: "my_mem_prog" сделать аргументом командной строки 
 #define ANALYSIS_PROGRAM_NAME "my_mem_prog"
 
 #define MONITORING_SCANCODE 1 // "[ESC]"

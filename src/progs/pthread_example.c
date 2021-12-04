@@ -13,7 +13,7 @@
 
 #define VALUE_SIZE 64
 #define PTHREAD_COUNT 3
-#define SLEEP_TIME 3
+#define SLEEP_TIME 10 // 3
 
 #define GET_RAND_NUMBER(min, max) (rand() % (max - min + 1) + min)
 

@@ -27,7 +27,7 @@
 
 \newpage
 
-// TODO: Указать размер  выделяемой памяти
+% TODO: Указать размер  выделяемой памяти
 
 \section{Анализ увелечения количества страниц программы, описанной выше}
 
@@ -61,6 +61,105 @@
 		\label{fig:analysis_program2}}
 \end{figure}
 
+\section{Анализ вспомогательной программы}
+
+На рис. \ref{fig:prog_2_1} запрашивается последовательно некоторое количество памяти,
+размер которой в сумме дает 33 * 4 * 1024 байта, что равно 33 страницам.
+Когда запрашиваемое количество памяти превышает 33 страницы, то общее 
+количество страниц увеличивается на 33 
+страницы см. рисунок \ref{fig:prog_2_2}. 
+
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=0.6\textwidth]{img/prog_2/1.png}
+		\caption{Последовательный запрос малого количества страниц}
+		\label{fig:prog_2_1}}
+\end{figure}
+
+
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=1\textwidth]{img/prog_2/2.png}
+		\caption{Результат при последовательном запросе малого количества страниц}
+		\label{fig:prog_2_2}}
+\end{figure}
+
+\newpage
+
+% Далее проанализируем запрос памяти, размер которой равен 30 страницам рис. \ref{fig:prog_2_3}.
+% При первом запросе 30 страниц не выделяется новое кол-во страниц, т.к. оно не превышает 33.
+% При следующем запросе 30 страниц выделяется 60 страниц. 
+% Результат продемонстрирован на рис. \ref{fig:prog_2_4}.
+
+% \begin{figure}[ht!]
+% 	\centering{
+% 		\includegraphics[width=0.6\textwidth]{img/prog_2/3.png}
+% 		\caption{Последовательный запрос 30 страниц}
+% 		\label{fig:prog_2_3}}
+% \end{figure}
+
+
+% \begin{figure}[ht!]
+% 	\centering{
+% 		\includegraphics[width=1\textwidth]{img/prog_2/4.png}
+% 		\caption{Результат при последовательном запросе 30 страниц}
+% 		\label{fig:prog_2_4}}
+% \end{figure}
+
+% \newpage
+
+На рисунках \ref{fig:prog_2_5} - \ref{fig:prog_2_10} показано, что при запросе памяти, 
+размер которой более 33 * 4 * 1024 байта, что равно 33 страницам, общее количество страниц 
+увеличивается на количество запрашиваемых страниц + 1.
+
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=0.6\textwidth]{img/prog_2/6.png}
+		\caption{Запрос 105 страниц}
+		\label{fig:prog_2_5}}
+\end{figure}
+
+
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=1\textwidth]{img/prog_2/7.png}
+		\caption{Результат при запросе 105 страниц}
+		\label{fig:prog_2_6}}
+\end{figure}
+
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=0.6\textwidth]{img/prog_2/8.png}
+		\caption{Запрос 1000 страниц}
+		\label{fig:prog_2_7}}
+\end{figure}
+
+
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=1\textwidth]{img/prog_2/9.png}
+		\caption{Результат при запросе 1000 страниц}
+		\label{fig:prog_2_8}}
+\end{figure}
+
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=0.6\textwidth]{img/prog_2/10.png}
+		\caption{Запрос 1237 и 1234  страниц}
+		\label{fig:prog_2_9}}
+\end{figure}
+
+
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=1\textwidth]{img/prog_2/11.png}
+		\caption{Результат при запросе 1237 и 1234 страниц}
+		\label{fig:prog_2_10}}
+\end{figure}
+
+\newpage
+
 \section{Вывод}
 
-В данном разделе был приведен анализ описанной выше программы.
+В данном разделе был приведен анализ общего количества выделенных страниц в 
+зависимости от запрашиваемого количества памяти. Была проанализирована описанная выше программа.

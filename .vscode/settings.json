@@ -1,0 +1,12 @@
+{
+	"files.associations": {
+		"*.tcc": "c",
+		"cstdlib": "c",
+		"memory": "c",
+		"new": "c",
+		"stdlib.h": "c",
+		"random": "c",
+		"limits": "c",
+		"algorithm": "c"
+	}
+}

@@ -9,6 +9,17 @@
 Visual Studio Code подходит не только для  Windows \cite{bib3}, но и для Linux \cite{bib4}, это еще одна причина, по которой я выбрала VS code,
 т.к. у меня установлена ОС Ubuntu 18.04.4 \cite{bib5}.
 
+\section{Структура курсового проекта}
+
+Курсовой проект состоит из:
+
+\begin{itemize}
+	\item md.c - загружаемого модуля ядра;
+	\item my\_mem\_prog.c - анализируемой программы.
+	\item additional\_program.с - дополнительной программы, позволяющей выделять 
+	необходимое количество памяти, для дальнейшего анализа.
+\end{itemize}
+
 \section{Листинг загружаемого модуля ядра}
 
 На листинге 3.1 приведен код загружаемого моду ядра. 
@@ -396,6 +407,46 @@ int main()
 	}
 
 	do_pthread("Main pthread"); 
+}
+\end{lstlisting}
+
+\section{Вспомогательная программа}
+
+На листинге 3.3 приведена вспомогательная программа.
+Она предоставляет возможность выделения памяти, размер которой равен 1024 * 4 * n байт (n страниц). 
+Где n - число, которое вводит пользователь.
+
+\begin{lstlisting}[language=c, label=some-code, caption=Вспомогательная программа]
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define PAGE_SIZE 4 * 1024 // 4 kilobyte
+#define OK 0
+
+void create(int page_count)
+{
+	void* mem = (void*)malloc(PAGE_SIZE * page_count);
+	printf("malloc (%d pages)\n", page_count);
+}
+
+void process(void)
+{
+	int page_count = 1;
+	while (page_count)
+	{
+		create(page_count);
+		printf("Input page count (0 to exit) : ");
+		scanf("%d", &page_count);
+	}
+}
+
+int main()
+{
+	srand(time(NULL));
+	setbuf(stdout, NULL);
+	process();
+	return OK;
 }
 \end{lstlisting}
 
